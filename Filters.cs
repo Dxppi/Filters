@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Filters
 {
@@ -267,51 +268,7 @@ namespace Filters
         }
     }
 
-    class GreyWorld : Filters
-    {
-        double r_ = 0;
-        double g_ = 0;
-        double b_ = 0; //Это среднее всех значений одного цвета
-        double Avg;
-        int k = 0;
-        int size;
-        void FindAvarageValues(Bitmap image)
-        {
-            if (k != 1)
-            {
-                Color PixelColor;
-                for (int i = 0; i < image.Height; i++)
-                {
-                    for (int j = 0; j < image.Width; j++)
-                    {
-                        PixelColor = image.GetPixel(j, i);
-                        r_ += PixelColor.R;
-                        g_ += PixelColor.G;
-                        b_ += PixelColor.B;
-                        ;
-                    }
-
-                }
-                k++;
-                size = image.Height * image.Width;
-                r_ /= size;
-                g_ /= size;
-                b_ /= size;
-                Avg = (r_ + g_ + b_) / 3;
-
-            }
-
-        }
-        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
-        {
-            FindAvarageValues(sourceImage);
-            Color sourceColor = sourceImage.GetPixel(x, y);
-            int ReturnR = Clamp((int)(sourceColor.R * (Avg / r_)), 0, 255);
-            int ReturnG = Clamp((int)(sourceColor.G * (Avg / g_)), 0, 255);
-            int ReturnB = Clamp((int)(sourceColor.B * (Avg / b_)), 0, 255);
-            return Color.FromArgb(ReturnR, ReturnG, ReturnB);
-        }
-    }
+  
 
     class SobelFilter : MatrixFilter
     {
@@ -494,7 +451,7 @@ namespace Filters
             return Color.FromArgb(resultR, resultG, resultB);
         }
     }
-
+    
     class MaxFilter : MatrixFilter
     {
 
@@ -539,6 +496,70 @@ namespace Filters
             return arr[count - 1];
         }
 
+    }
+
+    class CircleFilter : Filters
+    {
+        int radius = 101;
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            int centerX = sourceImage.Width / 2;
+            int centerY = sourceImage.Height / 2;
+            if (radius != -1)
+            {
+                for (int fi = 0; fi < 360; fi++)
+                    sourceImage.SetPixel((int)(centerX + radius * (float)Math.Cos(fi * Math.PI / 180)), (int)(centerY + radius * (float)Math.Sin(fi * Math.PI / 180)), Color.Red);
+                radius--;
+            }
+
+            return Color.FromArgb(sourceImage.GetPixel(x, y).R,sourceImage.GetPixel(x, y).G, sourceImage.GetPixel(x, y).B);
+        }
+    }
+
+    class GreyWorld : Filters
+    {
+        double r_ = 0;
+        double g_ = 0;
+        double b_ = 0; //Это среднее всех значений одного цвета
+        double Avg;
+        int k = 0;
+        int size;
+        void FindAvarageValues(Bitmap image)
+        {
+            if (k != 1)
+            {
+                Color PixelColor;
+                for (int i = 0; i < image.Height; i++)
+                {
+                    for (int j = 0; j < image.Width; j++)
+                    {
+                        PixelColor = image.GetPixel(j, i);
+                        r_ += PixelColor.R;
+                        g_ += PixelColor.G;
+                        b_ += PixelColor.B;
+                        ;
+                    }
+
+                }
+                k++;
+                size = image.Height * image.Width;
+                r_ /= size;
+                g_ /= size;
+                b_ /= size;
+                Avg = (r_ + g_ + b_) / 3;
+
+            }
+
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            FindAvarageValues(sourceImage);
+            Color sourceColor = sourceImage.GetPixel(x, y);
+            int ReturnR = Clamp((int)(sourceColor.R * (Avg / r_)), 0, 255);
+            int ReturnG = Clamp((int)(sourceColor.G * (Avg / g_)), 0, 255);
+            int ReturnB = Clamp((int)(sourceColor.B * (Avg / b_)), 0, 255);
+            return Color.FromArgb(ReturnR, ReturnG, ReturnB);
+        }
     }
 
 }
