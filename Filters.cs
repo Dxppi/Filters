@@ -500,19 +500,16 @@ namespace Filters
 
     class CircleFilter : Filters
     {
-        int radius = 101;
+        const int Radius = 101;
         protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
         {
             int centerX = sourceImage.Width / 2;
             int centerY = sourceImage.Height / 2;
-            if (radius != -1)
-            {
-                for (int fi = 0; fi < 360; fi++)
-                    sourceImage.SetPixel((int)(centerX + radius * (float)Math.Cos(fi * Math.PI / 180)), (int)(centerY + radius * (float)Math.Sin(fi * Math.PI / 180)), Color.Red);
-                radius--;
-            }
 
-            return Color.FromArgb(sourceImage.GetPixel(x, y).R,sourceImage.GetPixel(x, y).G, sourceImage.GetPixel(x, y).B);
+            double distance = Math.Sqrt(Math.Pow(x - centerX, 2) + Math.Pow(y - centerY, 2)); //Формула круга Х^2 + Y^2 
+
+            if (distance <= Radius) return Color.Red;
+            else return sourceImage.GetPixel(x, y);    
         }
     }
 
